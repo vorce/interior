@@ -1,7 +1,9 @@
 # Interior
 
-Interior is a light weight library to assist with restricting access to certain modules in Elixir project.
-You can think of it like boundary but takes a block list approach.
+**Note**: This is an experiment at the moment.
+
+Interior is a lightweight library to assist with restricting access to certain modules in an Elixir project.
+You can think of it a bit like boundary but with a block list approach and way less features.
 
 Use-cases:
 
@@ -9,12 +11,13 @@ Use-cases:
 
 ## Comparison to boundary
 
-Interior was born after using boundary and really liking what it can do but seeing some issues when introducing it into big, existing code bases.
+- Interior uses a block list approach; a developer needs to tell interior what is NOT allowed. Boundary needs to be told what to allow. This should make interior easier to integrate into an existing large code base as it allows everything by default.
+- Interior can do way less than boundary, e.g restrict access to external dependencies etc.
+- Interior's implementation is currently a stripped down, a bit hacky copy of boundary as PoC
 
-- Interior uses a block list approach; a developer needs to tell interior what is not allowed. Boundary needs to be told what to allow. This should make interior easier to integrate into an existing large code base as it allows everything by default.
-- Interior violations can be configured to either cause a compilation error, a warning or just log
-- Interior uses a lof of the same internal ideas/implementation
-- Interior can do way less than boundary, e.g restrict access to external dependencies
+## TODO
+
+* [ ] Be able to configure if Interior violations should be compiler warnings or just logged
 
 ## Usage
 
@@ -53,12 +56,14 @@ Now we can use inerior to restrict access to some modules. The following configu
 
 ```elixir
 defmodule MySystemWeb do
-  use Interior, restrict: {:all, :except: Endpoint}
+  use Interior, restricts: [{:all, except: [Endpoint]}]
   # ...
 end
 
 defmodule MySystem.Blog do
-  use Interior, restrict: [Internal]
+  use Interior, restricts: [Internal]
   # ...
 end
 ```
+
+See the `example_projects` dir for complete examples.
