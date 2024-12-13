@@ -21,7 +21,7 @@ defmodule Interior.View do
       version: unquote(Mix.Project.config()[:version]),
       main_app: main_app,
       classifier: classifier,
-      unclassified_modules: unclassified_modules(main_app, classifier.modules),
+      unclassified_modules: unclassified_modules(main_app, classifier.modules)
     }
   end
 
@@ -31,14 +31,31 @@ defmodule Interior.View do
     %{view | classifier: classifier}
   end
 
+  def refresh(%{version: unquote(Mix.Project.config()[:version])} = view, apps) do
+    view =
+      Enum.reduce(
+        apps,
+        view,
+        fn app, view ->
+          app_modules = app_modules(app)
+          app_boundaries = load_app_interiors(app_modules)
+          classifier = Classifier.classify(view.classifier, app_modules, app_boundaries)
+          %{view | classifier: classifier}
+        end
+      )
+
+    unclassified_modules = unclassified_modules(view.main_app, view.classifier.modules)
+    %{view | unclassified_modules: unclassified_modules}
+  end
+
   defp classify(main_app) do
     main_app_modules = app_modules(main_app)
-    main_app_boundaries = load_app_boundaries(main_app_modules)
+    main_app_boundaries = load_app_interiors(main_app_modules)
 
     Classifier.classify(Classifier.new(), main_app_modules, main_app_boundaries)
   end
 
-  defp load_app_boundaries(modules) do
+  defp load_app_interiors(modules) do
     for module <- modules, boundary = Interior.Definition.get(module) do
       Map.merge(boundary, %{
         name: module
@@ -58,5 +75,9 @@ defmodule Interior.View do
   @spec app_modules(Application.app()) :: [module]
   def app_modules(app),
     # we're currently supporting only Elixir modules
-    do: Enum.filter(Application.spec(app, :modules) || [], &String.starts_with?(Atom.to_string(&1), "Elixir."))
+    do:
+      Enum.filter(
+        Application.spec(app, :modules) || [],
+        &String.starts_with?(Atom.to_string(&1), "Elixir.")
+      )
 end

@@ -120,9 +120,14 @@ defmodule Interior.Definition do
 
   defp normalize_restricts(%{restricts: [{:all, except: exceptions}]} = definition, interior) do
     %{
-      definition | restricts: [{:all, except: Enum.map(exceptions, fn exception -> Module.concat(interior, exception) end)}]
+      definition
+      | restricts: [
+          {:all,
+           except: Enum.map(exceptions, fn exception -> Module.concat(interior, exception) end)}
+        ]
     }
   end
+
   defp normalize_restricts(definition, interior) do
     update_in(
       definition.restricts,
@@ -130,8 +135,11 @@ defmodule Interior.Definition do
     )
   end
 
-  defp normalize_restrict(interior, restrict) when is_atom(restrict), do: Module.concat(interior, restrict)
-  defp normalize_restrict(interior, {restrict, opts}), do: {Module.concat(interior, restrict), opts}
+  defp normalize_restrict(interior, restrict) when is_atom(restrict),
+    do: Module.concat(interior, restrict)
+
+  defp normalize_restrict(interior, {restrict, opts}),
+    do: {Module.concat(interior, restrict), opts}
 
   defp defaults do
     %{

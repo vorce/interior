@@ -15,7 +15,8 @@ defmodule Interior.Mix.Xref do
   @spec start_link(force: boolean) :: GenServer.on_start()
   def start_link(opts \\ []) do
     # The GenServer name (and ets tables) must contain app name, to properly work in umbrellas.
-    result = GenServer.start_link(__MODULE__, opts, name: :"#{__MODULE__}.#{Interior.Mix.app_name()}")
+    result =
+      GenServer.start_link(__MODULE__, opts, name: :"#{__MODULE__}.#{Interior.Mix.app_name()}")
 
     if match?({:ok, _pid}, result) or match?({:error, {:already_started, _pid}}, result),
       do: :ets.delete_all_objects(seen_table())
@@ -60,12 +61,26 @@ defmodule Interior.Mix.Xref do
 
   @impl GenServer
   def init(opts) do
-    :ets.new(seen_table(), [:set, :public, :named_table, read_concurrency: true, write_concurrency: true])
+    :ets.new(seen_table(), [
+      :set,
+      :public,
+      :named_table,
+      read_concurrency: true,
+      write_concurrency: true
+    ])
 
     with false <- Keyword.get(opts, :force, false),
-         {:ok, table} <- :ets.file2tab(String.to_charlist(Interior.Mix.manifest_path("interior"))),
+         {:ok, table} <-
+           :ets.file2tab(String.to_charlist(Interior.Mix.manifest_path("interior"))),
          do: table,
-         else: (_ -> :ets.new(entries_table(), [:named_table, :public, :duplicate_bag, write_concurrency: true]))
+         else:
+           (_ ->
+              :ets.new(entries_table(), [
+                :named_table,
+                :public,
+                :duplicate_bag,
+                write_concurrency: true
+              ]))
 
     {:ok, %{}}
   end

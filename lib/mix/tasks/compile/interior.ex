@@ -4,7 +4,9 @@ defmodule Mix.Tasks.Compile.Interior do
   alias Interior.Mix.Xref
 
   def run(argv) do
-    {opts, _rest, _errors} = OptionParser.parse(argv, strict: [force: :boolean, warnings_as_errors: :boolean])
+    {opts, _rest, _errors} =
+      OptionParser.parse(argv, strict: [force: :boolean, warnings_as_errors: :boolean])
+
     Xref.start_link(Keyword.take(opts, [:force]))
 
     Mix.Task.Compiler.after_compiler(:elixir, &after_elixir_compiler/1)
@@ -19,7 +21,11 @@ defmodule Mix.Tasks.Compile.Interior do
   @doc false
   def trace({remote, meta, to_module, _name, _arity}, env)
       when remote in ~w/remote_function imported_function remote_macro imported_macro/a do
-    mode = if is_nil(env.function) or remote in ~w/remote_macro imported_macro/a, do: :compile, else: :runtime
+    mode =
+      if is_nil(env.function) or remote in ~w/remote_macro imported_macro/a,
+        do: :compile,
+        else: :runtime
+
     record(to_module, meta, env, mode, :call)
   end
 
@@ -112,11 +118,16 @@ defmodule Mix.Tasks.Compile.Interior do
       view =
         with false <- Keyword.get(opts, :force, false),
              view when not is_nil(view) <- Interior.Mix.read_manifest("interior_view"),
+             view when not is_nil(view) <- Interior.View.refresh(view, user_apps),
              do: view,
              else: (_ -> rebuild_view())
 
       stored_view =
-        Enum.reduce(user_apps, %{view | unclassified_modules: MapSet.new()}, &Interior.View.drop_app(&2, &1))
+        Enum.reduce(
+          user_apps,
+          %{view | unclassified_modules: MapSet.new()},
+          &Interior.View.drop_app(&2, &1)
+        )
 
       Interior.Mix.write_manifest("interior_view", stored_view)
 
@@ -132,7 +143,9 @@ defmodule Mix.Tasks.Compile.Interior do
   end
 
   defp status([], _), do: :ok
-  defp status([_ | _], opts), do: if(Keyword.get(opts, :warnings_as_errors, false), do: :error, else: :ok)
+
+  defp status([_ | _], opts),
+    do: if(Keyword.get(opts, :warnings_as_errors, false), do: :error, else: :ok)
 
   defp print_diagnostic_errors(errors) do
     if errors != [], do: Mix.shell().info("")
@@ -159,7 +172,7 @@ defmodule Mix.Tasks.Compile.Interior do
 
   defp check(application, entries) do
     Interior.errors(application, entries)
-    #|> IO.inspect(label: "errors")
+    # |> IO.inspect(label: "errors")
     |> Stream.map(&to_diagnostic_error/1)
     |> Enum.sort_by(&{&1.file, &1.position})
   rescue
@@ -175,9 +188,14 @@ defmodule Mix.Tasks.Compile.Interior do
       end
 
     {func, arity} = error.reference.from_function
-    message = "forbidden reference to #{inspect(error.reference.to)} in #{inspect(error.from_module)}.#{func}/#{arity}\n  #{reason}"
 
-    diagnostic(message, file: Path.relative_to_cwd(error.reference.file), position: error.reference.line)
+    message =
+      "forbidden reference to #{inspect(error.reference.to)} in #{inspect(error.from_module)}.#{func}/#{arity}\n  #{reason}"
+
+    diagnostic(message,
+      file: Path.relative_to_cwd(error.reference.file),
+      position: error.reference.line
+    )
   end
 
   def diagnostic(message, opts \\ []) do

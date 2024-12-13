@@ -22,19 +22,22 @@ defmodule Interior.Checker do
 
   defp check_forbidden_reference(data) do
     from = data.reference.from
-      Enum.flat_map(data.interior.restricts, fn restricted ->
-        if forbidden_reference?(data.reference.from, data.reference.to, restricted, data.interior) do
-          [{:invalid_reference,
-          %{
-            type: :forbidden,
-            from_module: from,
-            interior: data.interior,
-            reference: data.reference
-          }}]
-        else
-          []
-        end
-      end)
+
+    Enum.flat_map(data.interior.restricts, fn restricted ->
+      if forbidden_reference?(data.reference.from, data.reference.to, restricted, data.interior) do
+        [
+          {:invalid_reference,
+           %{
+             type: :forbidden,
+             from_module: from,
+             interior: data.interior,
+             reference: data.reference
+           }}
+        ]
+      else
+        []
+      end
+    end)
   end
 
   defp forbidden_reference?(reference_from, reference_to, {:all, [except: exceptions]}, interior) do
@@ -46,11 +49,13 @@ defmodule Interior.Checker do
   end
 
   defp forbidden_reference?(reference_from, reference_to, {:all, []}, interior) do
-    String.starts_with?(to_string(reference_to), to_string(interior.name) <> ".") and not within_interior?(reference_from, interior)
+    String.starts_with?(to_string(reference_to), to_string(interior.name) <> ".") and
+      not within_interior?(reference_from, interior)
   end
 
   defp forbidden_reference?(reference_from, reference_to, restricted, interior) do
-    String.starts_with?(to_string(reference_to), to_string(restricted)) and not within_interior?(reference_from, interior)
+    String.starts_with?(to_string(reference_to), to_string(restricted)) and
+      not within_interior?(reference_from, interior)
   end
 
   defp within_interior?(reference_from, interior) do

@@ -1,7 +1,10 @@
 defmodule Interior.Classifier do
   @moduledoc false
 
-  @type t :: %{interiors: %{Interior.name() => Interior.t()}, modules: %{module() => Interior.name()}}
+  @type t :: %{
+          interiors: %{Interior.name() => Interior.t()},
+          modules: %{module() => Interior.name()}
+        }
 
   @spec new :: t
   def new, do: %{interiors: %{}, modules: %{}}

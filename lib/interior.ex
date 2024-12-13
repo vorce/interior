@@ -4,29 +4,28 @@ defmodule Interior do
   """
 
   @type t :: %{
-    name: name,
-    restricts: [module] | [{:all, except: [module]}] | [{:all, []}],
-    file: String.t(),
-    line: pos_integer,
-    app: atom,
-    errors: [term]
-  }
+          name: name,
+          restricts: [module] | [{:all, except: [module]}] | [{:all, []}],
+          file: String.t(),
+          line: pos_integer,
+          app: atom,
+          errors: [term]
+        }
 
-@type view :: map
+  @type view :: map
 
-@type name :: module
+  @type name :: module
 
-@type error :: {:invalid_reference, reference_error}
+  @type error :: {:invalid_reference, reference_error}
 
-@type dep_error :: %{name: Interior.name(), file: String.t(), line: pos_integer}
+  @type dep_error :: %{name: Interior.name(), file: String.t(), line: pos_integer}
 
-@type reference_error :: %{
-    type: :forbidden,
-    from_module: module,
-    interior: t(),
-    reference: Interior.Mix.Xref.entry()
-  }
-
+  @type reference_error :: %{
+          type: :forbidden,
+          from_module: module,
+          interior: t(),
+          reference: Interior.Mix.Xref.entry()
+        }
 
   defmacro __using__(opts), do: Interior.Definition.generate(opts, __CALLER__)
 

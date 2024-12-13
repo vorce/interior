@@ -12,7 +12,8 @@ defmodule Interior.Mix do
   end
 
   @spec manifest_path(String.t()) :: String.t()
-  def manifest_path(name), do: Path.join(Mix.Project.manifest_path(Mix.Project.config()), "compile.#{name}")
+  def manifest_path(name),
+    do: Path.join(Mix.Project.manifest_path(Mix.Project.config()), "compile.#{name}")
 
   @spec read_manifest(String.t()) :: term
   def read_manifest(name) do
